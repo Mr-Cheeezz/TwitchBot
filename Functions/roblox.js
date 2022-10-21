@@ -72,7 +72,7 @@ export function monitorGetXcsrfCB (cb) {
     const response = fetch("https://auth.roblox.com/v2/logout",{
         method: "POST",
         headers:{
-            Cookie: `.ROBLOSECURITY=${MAINSMONITOR_COOKIE}`
+            Cookie: `.ROBLOSECURITY=${COOKIE}`
         }
     }).then((r)=>{return r.headers.get('x-csrf-token')})
 
@@ -718,7 +718,7 @@ export function getPresenceSync (userId,cb) {
 
   export const monitorGetPresence = async (userId) => {
 
-    var r = await fetch(`https://presence.roblox.com/v1/presence/users`,{method:'POST',headers:{"Content-Type": "application/json", cookie: `.ROBLOSECURITY=${MAINSMONITOR_COOKIE}`, "X-CSRF-TOKEN":  await getXcsrf(MAINSMONITOR_COOKIE)},body:`{"userIds": [${userId}]}`})
+    var r = await fetch(`https://presence.roblox.com/v1/presence/users`,{method:'POST',headers:{"Content-Type": "application/json", cookie: `.ROBLOSECURITY=${COOKIE}`, "X-CSRF-TOKEN":  await getXcsrf(COOKIE)},body:`{"userIds": [${userId}]}`})
     var d = await r.json()
   
     var userPresences = d.userPresences[0]
@@ -742,7 +742,7 @@ export function getPresenceSync (userId,cb) {
   
   export function monitorGetPresenceSync (userId,cb) {
   
-      fetch(`https://presence.roblox.com/v1/presence/users`,{method:'POST',headers:{"Content-Type": "application/json", cookie: `.ROBLOSECURITY=${MAINSMONITOR_COOKIE}`, "X-CSRF-TOKEN": monitorGetXcsrfCB(function(result){return result})},body:`{"userIds": [${userId}]}`})
+      fetch(`https://presence.roblox.com/v1/presence/users`,{method:'POST',headers:{"Content-Type": "application/json", cookie: `.ROBLOSECURITY=${COOKIE}`, "X-CSRF-TOKEN": monitorGetXcsrfCB(function(result){return result})},body:`{"userIds": [${userId}]}`})
       .then((r)=>{
           return r.json()
       })
@@ -916,7 +916,7 @@ export function monitorGetPlayersInPrivateServerSync(placeId,privateServerID,cb)
     "headers": {
         "Accept": "application/json, text/plain, */*",
         "Accept-Language": "en-GB,en;q=0.5",
-        cookie:`.ROBLOSECURITY=${MAINSMONITOR_COOKIE}`,
+        cookie:`.ROBLOSECURITY=${COOKIE}`,
         "x-csrf-token": monitorGetXcsrfCB(function(result){return result})
     },
     "method": "GET"
@@ -1048,7 +1048,7 @@ export function monitorGetPrivateServersSync (placeId,cb){
         headers:{
             "Accept": "application/json, text/plain, */*",
             "Accept-Language": "en-GB,en;q=0.5",
-            cookie:`.ROBLOSECURITY=${MAINSMONITOR_COOKIE}`,
+            cookie:`.ROBLOSECURITY=${COOKIE}`,
             "x-csrf-token": monitorGetXcsrfCB(function(result){return result})
         },
         "method":"GET"

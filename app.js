@@ -15,6 +15,8 @@ import * as RESPONSES from "./Functions/responses.js";
 
 const RobloxId = 129152945
 
+let targetId = process.env.TARGET_ID 
+
 import { join } from "path";
 import { setEngine, verify } from "crypto";
 import { get, METHODS } from "http";
@@ -40,6 +42,15 @@ const CHANNEL_ID = process.env.CHANNEL_ID; // uid of CHANNEL_NAME
 let SETTINGS = JSON.parse(fs.readFileSync("./SETTINGS.json"));
 
 var commandsList = ["!roblox", "!link"];
+
+const current = await ROBLOX_FUNCTIONS.monitorGetPresence(targetId).then((r) => { return r })
+
+let gameArray = {
+  oldGame: current.placeId,
+  newGame: current.placeId,
+  oldGameName: current.lastLocation,
+  newGameName: current.lastLocation
+}
 
 const client = new tmi.Client({
     options: { debug: true },
@@ -197,6 +208,41 @@ async function updateMode(client, message, twitchUsername, userstate) {
     SETTINGS = JSON.parse(fs.readFileSync("./SETTINGS.json"));
 }
 
+let shouldMonitor = false
+
+setInterval(async () => {
+  const location = await ROBLOX_FUNCTIONS.getPresence(RobloxId).then((r)=>{return r.lastLocation});
+  const onlineStatus = await ROBLOX_FUNCTIONS.getLastOnline(RobloxId).then((r)=>{return r.diffTimeMinutes})
+    ROBLOX_FUNCTIONS.monitorGetPresenceSync(targetId, function (presence) {
+      const placeId = presence.placeId
+      const universeId = presence.universeId   
+
+      gameArray['oldGame'] = gameArray['newGame']
+      gameArray['newGame'] = placeId
+      gameArray['oldGameName'] = gameArray['newGameName']
+      gameArray['newGameName'] = presence.lastLocation
+
+      if (SETTINGS.ks == false) {
+        if (gameArray['oldGame'] != gameArray['newGame']) {
+          if (gameArray['newGame'] == null) {
+            console.log('target left game with placeid = ' + gameArray['oldGame'])
+            client.say(
+              CHANNEL_NAME, 
+              `${CHANNEL_NAME} left the game.`
+            );
+  
+        } else if (gameArray['oldGame'] != gameArray['newGame']) {
+          console.log('target joined new game with placeid = ' + gameArray['newGame'])
+          client.say(
+            CHANNEL_NAME, 
+            `${CHANNEL_NAME} is now playing ${gameArray['newGameName']}.`
+          );
+        }
+      }
+    }
+  })
+}, 4000);
+
 client.on("message", async (
     channel,
     userstate,
@@ -324,27 +370,10 @@ client.on("message", async (
                 //         return client.raw(`@client-nonce=${userstate['client-nonce']};reply-parent-msg-id=${userstate['id']} PRIVMSG #${CHANNEL_NAME} : ${CHANNEL_NAME} is currently switching games.`);            
                 //   }
                 // }
-                if (!linkAllowed) {
-                  if (message.toLowerCase().includes("***")) {
-                      client.action(
-                        CHANNEL_NAME,
-                        ` @${twitchUsername}, Do NOT send links.`
-                        // client.deletemessage)
-                    );
-                  }
-                }
               }
           }
         if (message.toLowerCase() == "!namecolor") {
           client.raw(`@client-nonce=${userstate['client-nonce']};reply-parent-msg-id=${userstate['id']} PRIVMSG #${CHANNEL_NAME} : Your username hex code is ${hexNameColor}.`);
-        }
-        if (message.toLowerCase() == "!subage") {
-          if (!isSubscriber) {
-              client.raw(`@client-nonce=${userstate['client-nonce']};reply-parent-msg-id=${userstate['id']} PRIVMSG #${CHANNEL_NAME} : You are not currenty a sub.`);
-          }
-          if (isSubscriber) {
-              client.raw(`@client-nonce=${userstate['client-nonce']};reply-parent-msg-id=${userstate['id']} PRIVMSG #${CHANNEL_NAME} : You are currently subscribed to ${CHANNEL_NAME} for ${subscriberMonths} months.`);
-          }
         }
         if (
           message.toLowerCase() == "!commands" ||
@@ -352,11 +381,11 @@ client.on("message", async (
           message.toLowerCase() == "!coms"
           ) {
               client.raw(
-                `@client-nonce=${userstate['client-nonce']};reply-parent-msg-id=${userstate['id']} PRIVMSG #${CHANNEL_NAME} : Click here for commands: cmds.mr${CHANNEL_NAME}.com`
+                `@client-nonce=${userstate['client-nonce']};reply-parent-msg-id=${userstate['id']} PRIVMSG #${CHANNEL_NAME} : Click here for commands: cmds.mrcheeezz.com`
               );
           }
         if (message.toLowerCase() == "!github") {
-          client.say(CHANNEL_NAME, `@${twitchUsername} The bots github -> github.com/mr-${CHANNEL_NAME}/${CHANNEL_NAME}bot`);
+          client.say(CHANNEL_NAME, `@${twitchUsername} The bots github -> github.com/mr-cheeezz/twitchbot`);
         }
         if (message.toLowerCase() == "!tf") {
           client.say(
@@ -364,48 +393,15 @@ client.on("message", async (
             `/me  Click here to get Jebaited -> tf.mr${CHANNEL_NAME}.com`
           );
         }
-        if (message.toLowerCase() == "!whispers") {
-          client.say(CHANNEL_NAME, `@${twitchUsername} click here to check your whispers -> twitch.tv/popout/moderator/${twitchUsername}}/whispers`)
-        }
-        if (message.toLowerCase() == "schedule") {
-          client.raw(
-            `@client-nonce=${userstate['client-nonce']};reply-parent-msg-id=${userstate['id']} PRIVMSG #${CHANNEL_NAME} :${BOT} Join the discord to see ${CHANNEL_NAME}s schedue -> https://discord.gg/QgWPcxRVEt`
-          );
-        }
-        var messageArray = ([] = message.toLowerCase().split(" "));
-        if (messageArray[0] == "!join") {
-          if (messageArray[1] == null) {
-            client.say(CHANNEL_NAME, `/me  ${twitchUsername} -> Click here to play : roblox.com/users/${RobloxId} (${CHANNEL_NAME})`);
-          } else
-          client.say(CHANNEL_NAME, `/me  ${messageArray[1]} -> Click here to play : roblox.com/users/${RobloxId} (${CHANNEL_NAME})`);
-         }
          if (message.toLowerCase() == "!rstats" || message.toLowerCase() == "!robloxstatus") {
           if (onlineStatus > 30) {
-            client.raw(`@client-nonce=${userstate['client-nonce']};reply-parent-msg-id=${userstate['id']} PRIVMSG #${CHANNEL_NAME} : ${CHANNEL_NAME} is currently offline, she has been offline for ${playtime}`);
+            client.raw(`@client-nonce=${userstate['client-nonce']};reply-parent-msg-id=${userstate['id']} PRIVMSG #${CHANNEL_NAME} : ${CHANNEL_NAME} is currently offline, he has been offline for ${playtime}`);
           }
           if (robloxGame == 'Website') {
             client.raw(`@client-nonce=${userstate['client-nonce']};reply-parent-msg-id=${userstate['id']} PRIVMSG #${CHANNEL_NAME} : ${CHANNEL_NAME} is currently on the website.`);
           }
           if (robloxGame != 'Website') {
-            client.raw(`@client-nonce=${userstate['client-nonce']};reply-parent-msg-id=${userstate['id']} PRIVMSG #${CHANNEL_NAME} : ${CHANNEL_NAME} is currently in game, she is playing ${robloxGame}.`);
-          }
-        }
-        if (message.toLowerCase() == "!whispers") {
-          client.say(CHANNEL_NAME, `@${twitchUsername} click here to check your whispers -> twitch.tv/popout/moderator/${twitchUsername}/whispers`)
-        }
-        const isValidLink =
-        message.toLowerCase().includes("privateServerLinkCode") &&
-        message.toLowerCase().includes("roblox.com/games");
-        const Sender = userstate["username"];
-        var currentVipLink = SETTINGS.currentLink
-        if (isValidLink) {
-          if (isBroadcaster) {
-            if (currentVipLink != null) {
-              client.say(
-                CHANNEL_NAME,
-                `@${Sender} The link has been updated.`
-              );
-            }  
+            client.raw(`@client-nonce=${userstate['client-nonce']};reply-parent-msg-id=${userstate['id']} PRIVMSG #${CHANNEL_NAME} : ${CHANNEL_NAME} is currently in game, he is playing ${robloxGame}.`);
           }
         }
     //   if (SETTINGS.ks == false) {
