@@ -3,16 +3,16 @@
     "lockfileVersion": 2,
     "requires": true,
     "dependencies": {
-        "discord.js": "^14.3.0",
-        "dotenv": "^16.0.2",
+        "discord.js": "^14.6.0",
+        "dotenv": "^16.0.3",
         "fs": "^0.0.1-security",
         "node-fetch": "^3.2.10",
-        "nodemon": "^2.0.19",
-        "pm2": "^5.2.0",
+        "nodemon": "^2.0.20",
+        "pm2": "^5.2.2",
         "spotify-buddylist": "^1.0.0",
         "string-similarity": "^4.0.4",
         "tmi.js": "^1.8.5",
-        "ws": "^8.8.1"
+        "ws": "^8.10.0"
     },
     "type": "module",
     "scripts": {
