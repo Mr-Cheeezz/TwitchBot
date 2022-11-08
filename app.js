@@ -367,7 +367,7 @@ async function liveDownHandler() {
     await setTimeout(WAIT_REGISTER / 100);
     client.say(
       `${CHANNEL_NAME}`,
-      `${CHANNEL_NAME}, is now offline.`
+      `${CHANNEL_NAME} is now offline.`
     );
   }
 }
